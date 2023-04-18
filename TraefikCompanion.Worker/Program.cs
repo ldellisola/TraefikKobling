@@ -1,4 +1,7 @@
+using StackExchange.Redis;
 using TraefikCompanion.Worker;
+
+var redisConnection = ConnectionMultiplexer.Connect("localhost:6379");
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
@@ -6,8 +9,9 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddHostedService<Worker>();
         services.AddHttpClient("home",t =>
         {
-            t.BaseAddress = new Uri("https://monitor.lud.ar/api");
+            t.BaseAddress = new Uri("http://monitor.lud.ar:8000/");
         });
+        services.AddSingleton<IConnectionMultiplexer>(redisConnection);
     })
     .Build();
 
