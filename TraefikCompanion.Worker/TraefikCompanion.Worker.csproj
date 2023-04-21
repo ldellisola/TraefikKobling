@@ -10,7 +10,14 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
+    <PackageReference Include="NetEscapades.Configuration.Yaml" Version="3.0.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.6.104" />
     <PackageReference Include="Traefik.Contracts" Version="0.9.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.yml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

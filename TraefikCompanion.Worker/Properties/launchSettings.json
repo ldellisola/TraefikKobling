@@ -1,11 +1,14 @@
 ﻿{
-  "profiles": {
-    "TraefikCompanion.Worker": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "environmentVariables": {
-        "DOTNET_ENVIRONMENT": "Development"
-      }
+    "profiles": {
+        "TraefikCompanion.Worker": {
+            "commandName": "Project",
+            "dotnetRunMessages": true,
+            "environmentVariables": {
+                "DOTNET_ENVIRONMENT": "Development",
+                "CONFIG_PATH": "./appsettings.yml",
+                "REDIS_URL": "192.168.0.13:6379",
+                "RUN_EVERY": "5"
+            }
+        }
     }
-  }
 }

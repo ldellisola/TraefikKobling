@@ -1,17 +1,35 @@
 using StackExchange.Redis;
 using TraefikCompanion.Worker;
+using TraefikCompanion.Worker.Configuration;
 
-var redisConnection = ConnectionMultiplexer.Connect("localhost:6379");
 
 IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices(services =>
+    .ConfigureAppConfiguration(t =>
     {
-        services.AddHostedService<Worker>();
-        services.AddHttpClient("home",t =>
+        var file = Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "/config.yml";
+        t.AddYamlFile(file, optional:false);
+    })
+    .ConfigureServices((builder,services) =>
+    {
+        var servers = builder.Configuration.GetSection("servers").Get<Server[]>();
+        
+        if (servers is null || servers.Length == 0)
+            throw new ArgumentException("No servers configured.");
+
+        foreach (var server in servers)
         {
-            t.BaseAddress = new Uri("http://monitor.lud.ar:8000/");
-        });
+            services.AddHttpClient(server.Name,t =>
+            {
+                t.BaseAddress = server.ApiAddress;
+            });
+        }
+
+        var redisConnectionString = Environment.GetEnvironmentVariable("REDIS_URL") 
+                                    ?? throw new ArgumentException("REDIS_URL is not set");
+        
+        var redisConnection = ConnectionMultiplexer.Connect(redisConnectionString);
         services.AddSingleton<IConnectionMultiplexer>(redisConnection);
+        services.AddHostedService<Worker>();
     })
     .Build();
 
