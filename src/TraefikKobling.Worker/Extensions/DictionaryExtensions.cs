@@ -1,4 +1,4 @@
-namespace TraefikCompanion.Worker.Extensions;
+namespace TraefikKobling.Worker.Extensions;
 
 public static class DictionaryExtensions
 {
