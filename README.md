@@ -237,3 +237,6 @@ So, if we want to access `serviceB.domain.tld`, the request should be redirected
 [main traefik] -- serviceB.domain.tld --> [local traefik] on 192.168.0.10
 [local traefik] --> [Service B]
 ```
+## License
+- Traefik Kobling: MIT, (c) 2022, Pixelcop Research, Inc.
+- traefik: MIT, Copyright (c) 2016-2020 Containous SAS; 2020-2023 Traefik Labs
