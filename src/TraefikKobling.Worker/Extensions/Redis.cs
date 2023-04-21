@@ -1,6 +1,6 @@
 using StackExchange.Redis;
 
-namespace TraefikCompanion.Worker.Extensions;
+namespace TraefikKobling.Worker.Extensions;
 
 internal static class Redis
 {

@@ -1,6 +1,6 @@
 ﻿{
     "profiles": {
-        "TraefikCompanion.Worker": {
+        "TraefikKobling.Worker": {
             "commandName": "Project",
             "dotnetRunMessages": true,
             "environmentVariables": {

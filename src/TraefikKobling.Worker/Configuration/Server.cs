@@ -1,4 +1,4 @@
-namespace TraefikCompanion.Worker.Configuration;
+namespace TraefikKobling.Worker.Configuration;
 
 public class Server
 {

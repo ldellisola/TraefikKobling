@@ -1,6 +1,6 @@
 using StackExchange.Redis;
-using TraefikCompanion.Worker;
-using TraefikCompanion.Worker.Configuration;
+using TraefikKobling.Worker;
+using TraefikKobling.Worker.Configuration;
 
 
 IHost host = Host.CreateDefaultBuilder(args)

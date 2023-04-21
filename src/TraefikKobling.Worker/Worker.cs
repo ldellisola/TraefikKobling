@@ -1,17 +1,17 @@
 using System.Net.Http.Json;
 using StackExchange.Redis;
 using Traefik.Contracts.TcpConfiguration;
-using TraefikCompanion.Worker.Extensions;
-using Server = TraefikCompanion.Worker.Configuration.Server;
+using TraefikKobling.Worker.Extensions;
+using Server = TraefikKobling.Worker.Configuration.Server;
 
-namespace TraefikCompanion.Worker;
+namespace TraefikKobling.Worker;
 
 public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
     private readonly IConnectionMultiplexer _redis;
     
-    private readonly Server[] _servers;
+    private readonly Configuration.Server[] _servers;
     private readonly Dictionary<string, HttpClient> _clients = new();
     private readonly int _runEvery;
     
@@ -22,7 +22,7 @@ public class Worker : BackgroundService
         _logger = logger;
         _redis = redis;
         _runEvery = configuration.GetValue("RUN_EVERY", 60);
-        _servers = configuration.GetSection("servers").Get<Server[]>()!;
+        _servers = configuration.GetSection("servers").Get<Configuration.Server[]>()!;
 
         foreach (var server in _servers)
         {
@@ -64,7 +64,7 @@ public class Worker : BackgroundService
         }
     }
 
-    private async Task<IDictionary<string,string>> GenerateRedisEntries(Server server, CancellationToken token)
+    private async Task<IDictionary<string,string>> GenerateRedisEntries(Configuration.Server server, CancellationToken token)
     {
         var entries = new Dictionary<string, string>();
         
