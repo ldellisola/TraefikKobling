@@ -39,7 +39,14 @@ public class Worker : BackgroundService
             var entries = new Dictionary<string, string>();
             foreach (var server in _servers)
             {
-                entries.Merge(await GenerateRedisEntries(server, stoppingToken));
+                try
+                {
+                    entries.Merge(await GenerateRedisEntries(server, stoppingToken));
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Could not generate redis entries for {Server}", server.Name);
+                }
             }
             
             var entriesToRemove = _oldEntries.Keys.Except(entries.Keys);
@@ -60,7 +67,7 @@ public class Worker : BackgroundService
             _oldEntries.Merge(entries);
             
             
-            await Task.Delay(_runEvery, stoppingToken);
+            await Task.Delay(_runEvery * 1000, stoppingToken);
         }
     }
 
@@ -90,7 +97,7 @@ public class Worker : BackgroundService
         
         _logger.LogInformation("Successfully retrieved {Number} http routers from {Server}",httpRouters.Length, server.Name);
         
-        entries.Add($"traefik/http/services/{server.Name}/loadbalancer/servers/0/url",server.DestinationAddress.ToString());
+        entries[$"traefik/http/services/{server.Name}/loadbalancer/servers/0/url"] = server.DestinationAddress.ToString();
         
         foreach (var router in httpRouters)
         {
@@ -99,10 +106,10 @@ public class Worker : BackgroundService
             if (name.Contains('@'))
                 name = $"{name.Split('@')[0]}_{server.Name}";
 
-            entries.Add($"traefik/http/routers/{name}/entrypoints/0", "web");
-            entries.Add($"traefik/http/routers/{name}/entrypoints/1", "web-secure");
-            entries.Add($"traefik/http/routers/{name}/rule", router.Rule);
-            entries.Add($"traefik/http/routers/{name}/service", server.Name);
+            entries[$"traefik/http/routers/{name}/entrypoints/0"] = "web";
+            entries[$"traefik/http/routers/{name}/entrypoints/1"] = "web-secure";
+            entries[$"traefik/http/routers/{name}/rule"] = router.Rule;
+            entries[$"traefik/http/routers/{name}/service"] = server.Name;
         }
 
         return entries;
