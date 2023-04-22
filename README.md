@@ -35,7 +35,7 @@ And then we can set up Traefik Kobling on next to your main instance using docke
 version: "3"
 services:
   traefik-kobling:
-    image: ldellisola/traefik-kobling
+    image: ghcr.io/ldellisola/traefik-kobling
     volumes:
       - ./config.yml:/config.yml
     environment:
@@ -113,7 +113,7 @@ services:
     image: redis:latest
 
   traefik-kobling:
-    image: ldellisola/traefik-kobling
+    image: ghcr.io/ldellisola/traefik-kobling
     volumes:
       - ./config.yml:/config.yml
     environment:
