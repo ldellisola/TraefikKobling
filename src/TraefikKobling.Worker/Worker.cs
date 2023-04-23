@@ -11,7 +11,7 @@ public class Worker : BackgroundService
     private readonly ILogger<Worker> _logger;
     private readonly IConnectionMultiplexer _redis;
     
-    private readonly Configuration.Server[] _servers;
+    private readonly Server[] _servers;
     private readonly Dictionary<string, HttpClient> _clients = new();
     private readonly int _runEvery;
     
@@ -22,7 +22,7 @@ public class Worker : BackgroundService
         _logger = logger;
         _redis = redis;
         _runEvery = configuration.GetValue("RUN_EVERY", 60);
-        _servers = configuration.GetSection("servers").Get<Configuration.Server[]>()!;
+        _servers = configuration.GetSection("servers").Get<Server[]>()!;
 
         foreach (var server in _servers)
         {
@@ -41,7 +41,8 @@ public class Worker : BackgroundService
             {
                 try
                 {
-                    entries.Merge(await GenerateRedisEntries(server, stoppingToken));
+                    entries.Merge(await GetHttpEntries(server, stoppingToken));
+                    entries.Merge(await GetTcpEntries(server, stoppingToken));
                 }
                 catch (Exception e)
                 {
@@ -70,13 +71,22 @@ public class Worker : BackgroundService
             await Task.Delay(_runEvery * 1000, stoppingToken);
         }
     }
+    
+    private async Task<IDictionary<string,string>> GetTcpEntries(Server server, CancellationToken token)
+    {
+        return await GetEntries("tcp","api/tcp/routers", server, token);
+    }
+    private async Task<IDictionary<string,string>> GetHttpEntries(Server server, CancellationToken token)
+    {
+        return await GetEntries("http","api/http/routers", server, token);
+    }
 
-    private async Task<IDictionary<string,string>> GenerateRedisEntries(Configuration.Server server, CancellationToken token)
+    private async Task<IDictionary<string, string>> GetEntries(string protocol, string endpoint, Server server, CancellationToken token)
     {
         var entries = new Dictionary<string, string>();
         
-        _logger.LogInformation("Attempting to connect to {Server}", server.Name);
-        var response = await _clients[server.Name].GetAsync("api/http/routers", token);
+        _logger.LogInformation("Attempting to retrieve {Protocol} routers from {Server}",protocol, server.Name);
+        var response = await _clients[server.Name].GetAsync(endpoint, token);
         
         if (!response.IsSuccessStatusCode)
         {
@@ -86,30 +96,41 @@ public class Worker : BackgroundService
         
         _logger.LogInformation("Successfully connected to {Server}", server.Name);
         
-        _logger.LogInformation("Retrieving http routers from {Server}", server.Name);
-        var httpRouters = await response.Content.ReadFromJsonAsync<TcpRouter[]>(cancellationToken: token);
+        _logger.LogInformation("Retrieving {Protocol} routers from {Server}", protocol, server.Name);
+        var routers = await response.Content.ReadFromJsonAsync<TcpRouter[]>(cancellationToken: token);
 
-        if (httpRouters is null)
+        if (routers is null)
         {
-            _logger.LogError("Could not get tcp routers from {Server}", server.Name);
+            _logger.LogError("Could not get {Protocol} routers from {Server}",protocol, server.Name);
+            return entries;
+        }
+
+        if (routers.IsEmpty())
+        {
+            _logger.LogInformation("No {Protocol} routers found on {Server}",protocol, server.Name);
             return entries;
         }
         
-        _logger.LogInformation("Successfully retrieved {Number} http routers from {Server}",httpRouters.Length, server.Name);
+        _logger.LogInformation("Successfully retrieved {Number} {Protocl} routers from {Server}",routers.Length,protocol, server.Name);
         
-        entries[$"traefik/http/services/{server.Name}/loadbalancer/servers/0/url"] = server.DestinationAddress.ToString();
+        entries[$"traefik/{protocol}/services/{server.Name}/loadbalancer/servers/0/url"] = server.DestinationAddress.ToString();
         
-        foreach (var router in httpRouters)
+        foreach (var router in routers)
         {
             var name = router.Service;
 
             if (name.Contains('@'))
                 name = $"{name.Split('@')[0]}_{server.Name}";
 
-            entries[$"traefik/http/routers/{name}/entrypoints/0"] = "web";
-            entries[$"traefik/http/routers/{name}/entrypoints/1"] = "web-secure";
-            entries[$"traefik/http/routers/{name}/rule"] = router.Rule;
-            entries[$"traefik/http/routers/{name}/service"] = server.Name;
+            var i = 0;
+            foreach (var (global,local) in server.EntryPoints)
+            {
+                if (router.EntryPoints.Any(t=> t == local))
+                    entries[$"traefik/{protocol}/routers/{name}/entrypoints/{i++}"] = global;
+            }
+            
+            entries[$"traefik/{protocol}/routers/{name}/rule"] = router.Rule;
+            entries[$"traefik/{protocol}/routers/{name}/service"] = server.Name;
         }
 
         return entries;
