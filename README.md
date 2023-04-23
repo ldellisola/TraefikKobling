@@ -90,6 +90,8 @@ The `entryPoints` mapping works in the following way:
 In the left you can write the entry points of your main instance and in the right you have to write the entrypoint of the local instance where the traffic will be forwarded.
 This approach means we don't have to register more routers than necesary and it keeps our main dashboard cleaner.
 
+If no entrypoints are provided, the default value is `http` both for the main instance and the local instance.
+
 ## Example
 So what does this mean?
 
