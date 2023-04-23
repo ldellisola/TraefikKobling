@@ -1,7 +1,7 @@
 # Traefik Kobling
 A dynamic traefik to traefik discovery agent.
 
-*"Kobling"* means *"coupling"* or *"linkink"* in norwegian. Traefik Kobling lets homelab
+*"Kobling"* means *"coupling"* or *"linking"* in norwegian. Traefik Kobling lets homelab
 users to link Traefik instances on diferent hosts to a main, public-facing Traefik instance
 without using docker swarm or publishing ports.
 
@@ -47,6 +47,9 @@ servers:
   - name: "other-host"
     apiAddress: http://192.168.0.10:8080
     destinationAddress: http://192.168.0.10
+    entryPoints:
+      web: web
+      websecure: web
 ```
 ## Configuration
 There are two places where you can configure this application. First there are some
@@ -65,15 +68,27 @@ servers:
   - name: "host-1"
     apiAddress: http://192.168.0.10:8080
     destinationAddress: http://192.168.0.10
+    entryPoints:
+      web: web
+      websecure: web
     
   - name: "host-2"
     apiAddress: http://192.168.0.11:8080
     destinationAddress: http://192.168.0.11
+    entryPoints:
+      web: web
+      websecure: web
     
   - name: "host-3"
     apiAddress: http://192.168.0.12:8080
     destinationAddress: http://192.168.0.12
+    entryPoints:
+      web-tcp: local-tcp
 ```
+The `entryPoints` mapping works in the following way:
+
+In the left you can write the entry points of your main instance and in the right you have to write the entrypoint of the local instance where the traffic will be forwarded.
+This approach means we don't have to register more routers than necesary and it keeps our main dashboard cleaner.
 
 ## Example
 So what does this mean?
@@ -170,6 +185,9 @@ servers:
   - name: "machine-b"
     apiAddress: http://192.168.0.10:8080
     destinationAddress: http://192.168.0.10
+    entryPoints:
+      web: local
+      web-secure: local
 ```
   
 - Machine B is on IP 192.168.0.10 and it runs:
@@ -217,7 +235,7 @@ api:
     insecure: true
     
 entryPoints:
-    web:
+    local:
         address: ":80"
 
 providers:
