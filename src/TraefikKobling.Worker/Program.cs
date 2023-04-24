@@ -20,10 +20,7 @@ IHost host = Host.CreateDefaultBuilder(args)
 
         foreach (var server in options.Servers)
         {
-            services.AddHttpClient(server.Name,t =>
-            {
-                t.BaseAddress = server.ApiAddress;
-            });
+            services.AddHttpClient(server.Name,t => t.SetUpHttpClient(server));
         }
 
         var redisConnectionString = builder.Configuration.GetValue<string>("REDIS_URL") 

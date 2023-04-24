@@ -14,6 +14,7 @@ public static class IConfigurationExtensions
                 Name = child.GetRequiredValue<string>(nameof(Server.Name)),
                 ApiAddress = new Uri(child.GetRequiredValue<string>(nameof(Server.ApiAddress))),
                 DestinationAddress = new Uri(child.GetRequiredValue<string>(nameof(Server.DestinationAddress))),
+                ApiHost = child.GetValue<string>(nameof(Server.ApiHost))
             };
             
             if (child.GetSection("entryPoints").Get<Dictionary<string,string>>() is { Count: > 0 } entryPoints)
