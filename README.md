@@ -127,7 +127,7 @@ services:
       - ./acme.json:/acme.json
       
   redis:
-    image: redis:latest
+    image: redis:alpine
 
   traefik-kobling:
     image: ghcr.io/ldellisola/traefik-kobling
