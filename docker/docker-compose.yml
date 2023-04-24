@@ -1,7 +1,7 @@
 version: "3"
 
 networks:
-    web:
+    default:
         name: "web"
 
 services:
@@ -14,8 +14,6 @@ services:
             - 443:443
         depends_on:
             - redis
-        networks:
-            - web
         environment:
             CF_API_EMAIL: ${CLOUDFLARE_API_EMAIL}
             CF_API_KEY: ${CLOUDFLARE_API_KEY}
@@ -34,8 +32,6 @@ services:
         container_name: traefik-kobling
         depends_on:
             - redis
-         networks:
-            - web
          volumes:
              - ./config.yml:/config.yml
          environment:
@@ -46,7 +42,3 @@ services:
         image: redis:alpine
         container_name: redis
         restart: unless-stopped
-        ports:
-            - 6379:6379
-        networks:
-            - web
