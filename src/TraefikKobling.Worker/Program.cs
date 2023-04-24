@@ -30,6 +30,8 @@ IHost host = Host.CreateDefaultBuilder(args)
                                     ?? throw new ArgumentException("REDIS_URL is not set");
         
         var redisConnection = ConnectionMultiplexer.Connect(redisConnectionString);
+
+        redisConnection.FlushDatabase(redisConnectionString);
         services.AddSingleton<IConnectionMultiplexer>(redisConnection);
         services.AddHostedService<Worker>();
     })
