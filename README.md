@@ -27,11 +27,14 @@ providers:
 Also, if you want to use HTTPS, it should be done in this instance.
 
 Configure all your local traefik instances to have API access enabled in their `traefik.yml`:
-
+- If the local traefik instances are located within your own local network, then you can allow insecure access and connect to it over port 8080:
 ```yml
 api:
   insecure: true
 ```
+
+- if your local traefik instances can be accessed through the internet, then you should not be allowing insecure access and you should set up some sort
+of authentication. Traefik Kobling only supports Basic Auth and here's a [guide](https://doc.traefik.io/traefik/operations/api/) on how to set it up in your instance.
 
 These instances do not (and probably should not) have HTTPS enabled.
 
@@ -99,6 +102,19 @@ The entrypoints of your main instance are on the left and the entrypoint of the 
 This approach means we do not have to register more routers than necessary and it helps keep our main dashboard clean.
 
 If no entrypoints are provided in the configuration, the default value `http` is used for both the main instance as well as local instances.
+### Connecting to Traefik instances with Basic Auth
+If your local instance has basic auth enabled, then you have to specify it in the Kobling config:
+```yml
+servers:
+  - name: "host-1"
+    apiAddress: http://username:password@192.168.0.10
+    apiHost: traefik.domain.tld
+    destinationAddress: http://192.168.0.10
+    entryPoints:
+      web: web
+      websecure: web
+```
+The address in `apiAddress` should include the username and password to access the api and `apiHost` should be the host name for that service.
 
 ## Example
 
@@ -106,7 +122,7 @@ So what does this mean?
 
 Let's say we have 2 machines in our home network:
 - Machine A is exposing port 80 and 443 to the internet and it is running the following containers:
-  - `traefik`: this is our main instance and has the dashboard exposed in the FQDN `main.doman.tld`
+  - `traefik`: this is our main instance and has the dashboard exposed in the FQDN `main.domain.tld`
   - `redis`: it's the storage for the main instance to use as a provider.
   - `traefik koblink`: it will read data from the traefik instance in machine B and provide redirect data
   for the main traefik instance.
