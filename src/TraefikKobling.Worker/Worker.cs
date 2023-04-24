@@ -1,6 +1,8 @@
 using System.Net.Http.Json;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using Traefik.Contracts.TcpConfiguration;
+using TraefikKobling.Worker.Configuration;
 using TraefikKobling.Worker.Extensions;
 using Server = TraefikKobling.Worker.Configuration.Server;
 
@@ -17,16 +19,18 @@ public class Worker : BackgroundService
     
     private readonly IDictionary<string,string> _oldEntries = new Dictionary<string, string>();
 
-    public Worker(ILogger<Worker> logger, IHttpClientFactory httpClientFactory, IConnectionMultiplexer redis, IConfiguration configuration)
+    public Worker(ILogger<Worker> logger, IHttpClientFactory httpClientFactory, IConnectionMultiplexer redis, KoblingOptions options)
     {
         _logger = logger;
         _redis = redis;
-        _runEvery = configuration.GetValue("RUN_EVERY", 60);
-        _servers = configuration.GetSection("servers").Get<Server[]>()!;
+        _runEvery = options.RunEvery ?? 60;
+        _servers = options.Servers;
 
         foreach (var server in _servers)
         {
-            _clients.Add(server.Name, httpClientFactory.CreateClient(server.Name));
+            var client = httpClientFactory.CreateClient(server.Name);
+            
+            _clients.Add(server.Name, client);
         }
     }
 
