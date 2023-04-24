@@ -1,6 +1,7 @@
 servers:
-  - name: "compute-1"
+  - name: "compute-2"
     apiAddress: http://192.168.0.14
+    apiHost: traefik
     destinationAddress: http://192.168.0.14
     entryPoints:
       web: http
