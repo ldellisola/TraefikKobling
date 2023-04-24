@@ -1,7 +1,7 @@
 servers:
   - name: "compute-1"
-    apiAddress: http://192.168.0.10:8080
-    destinationAddress: http://192.168.0.10
+    apiAddress: http://192.168.0.14
+    destinationAddress: http://192.168.0.14
     entryPoints:
-      web: web
-      websecure: web
+      web: http
+      web-secure: http
