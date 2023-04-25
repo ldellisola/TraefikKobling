@@ -126,15 +126,18 @@ public class Worker : BackgroundService
             if (name.Contains('@'))
                 name = $"{name.Split('@')[0]}_{server.Name}";
 
-            var i = 0;
+            var registeredEntryPoints = 0;
             foreach (var (global,local) in server.EntryPoints)
             {
                 if (router.EntryPoints.Any(t=> t == local))
-                    entries[$"traefik/{protocol}/routers/{name}/entrypoints/{i++}"] = global;
+                    entries[$"traefik/{protocol}/routers/{name}/entrypoints/{registeredEntryPoints++}"] = global;
             }
-            
-            entries[$"traefik/{protocol}/routers/{name}/rule"] = router.Rule;
-            entries[$"traefik/{protocol}/routers/{name}/service"] = server.Name;
+
+            if (registeredEntryPoints > 0)
+            {
+                entries[$"traefik/{protocol}/routers/{name}/rule"] = router.Rule;
+                entries[$"traefik/{protocol}/routers/{name}/service"] = server.Name;
+            }
         }
 
         return entries;
