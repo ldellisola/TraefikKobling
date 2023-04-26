@@ -7,15 +7,15 @@ name: Docker
 
 on:
   push:
-    branches: [ "main" ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    branches: [ "develop" ]
+    paths:
+      - src/**
+      - docker/**
   pull_request:
-    branches: [ "main" ]
+    branches: [ "develop" ]
     paths:
       - docker/Dockerfile
-      - .github/workflows/docker.yml
-    
+      - .github/workflows/docker-develop.yml
   workflow_dispatch:
     
 env:
@@ -78,9 +78,6 @@ jobs:
               type=schedule
               type=ref,event=branch
               type=ref,event=pr
-              type=semver,pattern={{version}}
-              type=semver,pattern={{major}}.{{minor}}
-              type=semver,pattern={{major}}
               type=sha
 
       # Build and push Docker image with Buildx (don't push on PR)
