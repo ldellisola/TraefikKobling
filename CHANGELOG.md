@@ -1,4 +1,10 @@
 # Changes
+## v0.1.2
+**Released on**: 25/04/2023
+### Changes
+- Fixed bug that would register services without any entry point
+
+See full changelog [here](https://github.com/ldellisola/TraefikKobling/releases/tag/v0.1.2).
 
 ## v0.1.1
 **Released on**: 25/04/2023
