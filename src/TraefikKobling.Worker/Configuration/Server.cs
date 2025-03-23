@@ -6,6 +6,8 @@ public class Server
     public required Uri ApiAddress { get; set; }
     public string? ApiHost { get; set; }
     public required Uri DestinationAddress { get; set; }
+    public bool? ForwardMiddlewares { get; set; }
+
     public Dictionary<string, string> EntryPoints { get; set; } = new()
     {
         {"http", "http"}
