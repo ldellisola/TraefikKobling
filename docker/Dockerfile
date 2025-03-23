@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build-env
 WORKDIR /src
 
 # Copy everything
@@ -9,12 +9,12 @@ RUN dotnet restore /src/TraefikKobling.Worker/TraefikKobling.Worker.csproj
 
 # Build and publish a release
 RUN dotnet publish /src/TraefikKobling.Worker/TraefikKobling.Worker.csproj \
-    -c Release \
-    -o out \
-    --no-restore
+  -c Release \
+  -o out \
+  --no-restore
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/runtime:7.0-alpine
+FROM mcr.microsoft.com/dotnet/runtime:9.0-alpine
 
 ENV REDIS_URL=redis:6379
 WORKDIR /app
