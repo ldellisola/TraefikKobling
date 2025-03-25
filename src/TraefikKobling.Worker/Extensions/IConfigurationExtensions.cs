@@ -14,7 +14,8 @@ public static class IConfigurationExtensions
                 Name = child.GetRequiredValue<string>(nameof(Server.Name)),
                 ApiAddress = new Uri(child.GetRequiredValue<string>(nameof(Server.ApiAddress))),
                 DestinationAddress = new Uri(child.GetRequiredValue<string>(nameof(Server.DestinationAddress))),
-                ApiHost = child.GetValue<string>(nameof(Server.ApiHost))
+                ApiHost = child.GetValue<string>(nameof(Server.ApiHost)),
+                ForwardMiddlewares = child.GetValue<bool?>(nameof(Server.ForwardMiddlewares))
             };
             
             if (child.GetSection("entryPoints").Get<Dictionary<string,string>>() is { Count: > 0 } entryPoints)
@@ -26,7 +27,8 @@ public static class IConfigurationExtensions
         var options = new KoblingOptions
         {
             Servers = servers.ToArray(),
-            RunEvery = configuration.GetValue<int>("RUN_EVERY")
+            RunEvery = configuration.GetValue<int>("RUN_EVERY"),
+            ForwardMiddlewares = configuration.GetValue<bool>(nameof(KoblingOptions.ForwardMiddlewares))
         };
 
         services.AddSingleton(options);

@@ -6,5 +6,6 @@ public class HttpRouter
     public string[] Middlewares { get; set; } = [];
     public string Service { get; set; } = "";
     public string Rule { get; set; } = "";
+    public string Name { get; set; } = "";
     public long Priority { get; set; }
 }

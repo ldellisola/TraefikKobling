@@ -154,13 +154,12 @@ public class Worker(
         
         entries[$"traefik/http/services/{server.Name}/loadbalancer/servers/0/url"] = server.DestinationAddress.ToString();
 
-        var middlewares = await GetMiddlewares(server, token);
-        var middlewareNames = middlewares.Select(t=>t.Name).ToArray();
-        
+        var middlewareNames = await GetMiddlewares(server, token);
+        var serviceNames = await GetServices(server, token);
         foreach (var router in routers)
         {
-            var name = router.Service;
-
+            var name = router.Name;
+            
             if (name.Contains('@'))
                 name = $"{name.Split('@')[0]}_{server.Name}";
 
@@ -179,14 +178,14 @@ public class Worker(
 
             if (server.ForwardMiddlewares ?? options.ForwardMiddlewares ?? false)
             {
-                if (router.Service.EndsWith("@file", StringComparison.OrdinalIgnoreCase))
+                if (!serviceNames.Contains(router.Name, StringComparer.OrdinalIgnoreCase) && !serviceNames.Contains(router.Service, StringComparer.OrdinalIgnoreCase))
                 {
                     entries[$"traefik/http/routers/{name}/service"] = router.Service;
                 }
 
                 foreach (var middleware in router.Middlewares.Except(middlewareNames, StringComparer.OrdinalIgnoreCase))
                 {
-                    entries[$"traefik/http/routers/{name}/middleware"] = middleware;
+                    entries[$"traefik/http/routers/{name}/middlewares"] = middleware;
                 }
             }
         }
@@ -194,7 +193,22 @@ public class Worker(
         return entries;
     }
 
-    private async Task<Middleware[]> GetMiddlewares(Server server, CancellationToken token)
+
+    private async Task<string[]> GetServices(Server server, CancellationToken token)
+    {
+        using var client = httpClientFactory.CreateClient(server.Name);
+        using var response = await client.GetAsync("/api/http/services", token);
+        if (!response.IsSuccessStatusCode)
+        {
+            logger.LogError("Could not connect to {Server}. Error: {StatusCode}", server.Name, response.StatusCode);
+            return [];
+        }
+        
+        var services = await response.Content.ReadFromJsonAsync<Service[]>(GeneratedJsonInfo.Default.ServiceArray,token);
+        return services?.Select(t=> t.Name).ToArray() ?? [];
+    }
+
+    private async Task<string[]> GetMiddlewares(Server server, CancellationToken token)
     {
         using var client = httpClientFactory.CreateClient(server.Name);
         using var response = await client.GetAsync("api/http/middlewares", token);
@@ -205,6 +219,6 @@ public class Worker(
         }
         
         var middlewares = await response.Content.ReadFromJsonAsync<Middleware[]>(GeneratedJsonInfo.Default.MiddlewareArray,token);
-        return middlewares ?? [];
+        return middlewares?.Select(t=> t.Name).ToArray() ?? [];
     }
 }
