@@ -116,6 +116,88 @@ servers:
 ```
 The address in `apiAddress` should include the username and password to access the api and `apiHost` should be the host name for that service.
 
+### Forwarding Services
+Starting on version 0.2.0, Traefik Kobling can now identify if your internal router references a service that is not defined in the internal traefik instance.
+
+So if you have a router with a custom service, for example:
+```yml
+services:
+  whoami:
+    ...
+    labels:
+      ...
+      traefik.http.routers.utgifter-auth.service: "authentik@file"
+```
+It will look in the main instance for the `authentik@file` service.
+
+### Forwarding Middlewares
+
+Starting on version 0.2.0, Traefik Kobling can now forward middleware usage from internal instances to the main instance.
+This is enabled by the `forwardMiddlewares` property on the `config.yml` file. 
+This option can be controlled globally:
+```yml
+forwardMiddlewares: true
+servers:
+  - name: "host-1"
+    apiAddress: http://username:password@192.168.0.10
+    apiHost: traefik.domain.tld
+    destinationAddress: http://192.168.0.10
+    entryPoints:
+      web: web
+      websecure: web
+```
+Or in a per-server basis:
+```yml
+servers:
+  - name: "host-1"
+    apiAddress: http://username:password@192.168.0.10
+    apiHost: traefik.domain.tld
+    destinationAddress: http://192.168.0.10
+    forwardMiddlewares: true
+    entryPoints:
+      web: web
+      websecure: web
+```
+In practice, it means that whatever middleware you registered to a router:
+```yml
+services:
+  whoami:
+    ...
+    labels:
+      traefik.http.routers.whoami.middlewares: auth@file
+```
+This dependency will be brought to the main instance, and this instance will be the one responsible for finding the `auth@file` middleware.
+This feature will not copy middleware definitions from internal instances into external ones.
+
+This approach has one problem:
+If your router in the internal traefik depends on a middlware that does not exists, the router will be skipped during request matching.
+There are 2 ways around this:
+
+1. Create a second router that matches to the same container but does not have the middleware dependency. You need to make sure that this new router has less priority than the original
+```yml
+services:
+  whoami:
+    ...
+    labels:
+      traefik.http.routers.whoami.rule: "Host(`whoami.lud.ar`)"
+      # longer rule means less priority
+      traefik.http.routers.whoami-test.rule: "Host(`whoami.lud.ar`) && Host(`whoami.lud.ar`)"
+      traefik.http.services.whoami.loadbalancer.server.port: "80"
+      traefik.http.routers.whoami.middlewares: auth@file
+```
+In this case, we are defining 2 routers for the `whoami` service. The main traefik instance will have both routers: `whoami` and `whoami-test` but will always match the first one because of the priority. The internal instance will have 2 routers, but `whoami` will not be valid because it is missing the middleware implementation, so all requests will match to `whoami-test` and the public instance will handle the middleware.
+
+2. Create a mock middleware with the same name on your internal traefik instance.
+```yml
+http:
+  middlewares:
+    auth:
+      redirectRegex: # a dummy, do-nothing redirect
+        regex: "^/$"
+        replacement: "/"
+```
+This way the entry on both instances will be valid, but only the one on the public instance will run the actual middleware.
+
 ## Example
 
 So what does this mean?
@@ -281,6 +363,67 @@ So, if we want to access `serviceB.domain.tld`, the request should be redirected
 [main traefik] -- serviceB.domain.tld --> [local traefik] on 192.168.0.10
 [local traefik] --> [Service B]
 ```
+
+### Integration with Authentik
+Both additions on version 0.2.0 were made to support authentik and other domain level proxy authentication providers.
+If you define the following middleware on your main traefik instance:
+```yml
+http:
+    middlewares:
+        auth:
+            forwardAuth:
+                address: http://authentik.domain.tld:9000/outpost.goauthentik.io/auth/traefik
+                trustForwardHeader: true
+                authResponseHeaders:
+                  - X-authentik-username
+                  - X-authentik-groups
+                  - X-authentik-entitlements
+                  - X-authentik-email
+                  - X-authentik-name
+                  - X-authentik-uid
+                  - X-authentik-jwt
+                  - X-authentik-meta-jwks
+                  - X-authentik-meta-outpost
+                  - X-authentik-meta-provider
+                  - X-authentik-meta-app
+                  - X-authentik-meta-version
+
+    routers:
+        authentik:
+            entryPoints:
+                - web
+                - web-secure
+            service: authentik
+            rule: Host(`authentik.domain.tld`)
+    services:
+        authentik:
+            loadBalancer:
+                servers:
+                    - url: http://authentik.domain.tld:9000
+```
+On your internal instance you define the following middleware:
+```yml
+http:
+  middlewares:
+    auth:
+      redirectRegex: # a dummy, do-nothing redirect
+        regex: "^/$"
+        replacement: "/"
+```
+Then, you can define your services like:
+```yml
+services:
+  whoami:
+    ...
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.whoami.rule: "Host(`whoami.domain.tld`)"
+      traefik.http.services.whoami.loadbalancer.server.port: "80"
+      traefik.http.routers.whoami.middlewares: auth@file
+      traefik.http.routers.whoami-auth.rule: "Host(`whoami.domain.tld`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      traefik.http.routers.whoami-auth.service: "authentik@file"
+```
+And remember to enable the `forwardMiddlewares` feature on that server or globally.
 
 ## License
 - Traefik Kobling: MIT, (c) 2022, Pixelcop Research, Inc.
