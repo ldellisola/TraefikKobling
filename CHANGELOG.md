@@ -1,4 +1,9 @@
 # Changes
+## v.0.2.0
+**Released on**: UNRELEASED
+### Changes
+- Added support to forward sevices and middlewares to support forward authentication
+
 ## v0.1.2
 **Released on**: 25/04/2023
 ### Changes
