@@ -176,13 +176,17 @@ public class Worker(
                 entries[$"traefik/http/routers/{name}/service"] = server.Name;
             }
 
-            if (server.ForwardMiddlewares ?? options.ForwardMiddlewares ?? false)
+            if (server.ForwardServices ?? options.ForwardServices ?? false)
             {
-                if (!serviceNames.Contains(router.Name, StringComparer.OrdinalIgnoreCase) && !serviceNames.Contains(router.Service, StringComparer.OrdinalIgnoreCase))
+                if (!serviceNames.Contains(router.Name, StringComparer.OrdinalIgnoreCase) &&
+                    !serviceNames.Contains(router.Service, StringComparer.OrdinalIgnoreCase))
                 {
                     entries[$"traefik/http/routers/{name}/service"] = router.Service;
                 }
+            }
 
+            if (server.ForwardMiddlewares ?? options.ForwardMiddlewares ?? false)
+            {
                 foreach (var middleware in router.Middlewares.Except(middlewareNames, StringComparer.OrdinalIgnoreCase))
                 {
                     entries[$"traefik/http/routers/{name}/middlewares"] = middleware;
