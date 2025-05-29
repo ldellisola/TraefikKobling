@@ -426,5 +426,5 @@ services:
 And remember to enable the `forwardMiddlewares` feature on that server or globally.
 
 ## License
-- Traefik Kobling: MIT, (c) 2022, Pixelcop Research, Inc.
+- Traefik Kobling: MIT, (c) 2023 Lucas Dell'Isola.
 - traefik: MIT, Copyright (c) 2016-2020 Containous SAS; 2020-2023 Traefik Labs
