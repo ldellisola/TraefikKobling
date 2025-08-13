@@ -108,11 +108,11 @@ public class Worker(
                     entries[$"traefik/tcp/routers/{name}/entrypoints/{registeredEntryPoints++}"] = global;
             }
 
-            if (registeredEntryPoints > 0)
-            {
-                entries[$"traefik/tcp/routers/{name}/rule"] = router.Rule;
-                entries[$"traefik/tcp/routers/{name}/service"] = server.Name;
-            }
+            if (registeredEntryPoints == 0) continue;
+            
+            entries[$"traefik/tcp/routers/{name}/rule"] = router.Rule;
+            entries[$"traefik/tcp/routers/{name}/service"] = server.Name;
+            
         }
 
         return entries;
