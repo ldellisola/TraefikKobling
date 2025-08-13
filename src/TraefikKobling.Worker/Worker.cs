@@ -166,11 +166,10 @@ public class Worker(
                     entries[$"traefik/http/routers/{name}/entrypoints/{registeredEntryPoints++}"] = global;
             }
 
-            if (registeredEntryPoints > 0)
-            {
-                entries[$"traefik/http/routers/{name}/rule"] = router.Rule;
-                entries[$"traefik/http/routers/{name}/service"] = server.Name;
-            }
+            if (registeredEntryPoints == 0) continue;
+
+            entries[$"traefik/http/routers/{name}/rule"] = router.Rule;
+            entries[$"traefik/http/routers/{name}/service"] = server.Name;
 
             if (server.ForwardServices ?? options.ForwardServices ?? false)
             {
@@ -226,3 +225,4 @@ public class Worker(
         return middlewares?.Select(t=> t.Name).ToArray() ?? [];
     }
 }
+
