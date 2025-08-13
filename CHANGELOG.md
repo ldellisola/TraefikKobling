@@ -1,6 +1,17 @@
 # Changes
+
+## v0.2.2
+**Released on**: 13/08/2025
+### Changes:
+- Fixed error where route registration would stop competely if one service did not have an endpoint registered
+
+## v0.2.1
+**Released on**: 08/07/2025
+### Changes
+- Fix for handling multiple middlewares.
+
 ## v.0.2.0
-**Released on**: UNRELEASED
+**Released on**: 29/05/2025
 ### Changes
 - Added support to forward sevices and middlewares to support forward authentication
 
