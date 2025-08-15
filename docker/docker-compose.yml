@@ -1,44 +1,39 @@
 version: "3"
 
 networks:
-    default:
-        name: "web"
+  default:
+    name: "web"
 
 services:
-    traefik:
-        image: traefik:latest
-        container_name: traefik
-        restart: unless-stopped
-        ports:
-            - 80:80
-            - 443:443
-        depends_on:
-            - redis
-        environment:
-            CF_API_EMAIL: ${CLOUDFLARE_API_EMAIL}
-            CF_API_KEY: ${CLOUDFLARE_API_KEY}
-        volumes:
-            - /var/run/docker.sock:/var/run/docker.sock:ro
-            - ./traefik.yml:/traefik.yml:ro
-            - ./certs/acme.json:/acme.json
-        labels:
-            traefik.enable: "true"
-            traefik.http.routers.traefik.rule: "Host(`traefik.domain.tld`)"
-            traefik.http.routers.traefik.service: "api@internal"
-            traefik.http.services.traefik.loadbalancer.server.port: "8080"
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 8080:8080
+    depends_on:
+      - redis
+    volumes:
+      - ./traefik.yml:/traefik.yml:ro
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.traefik.rule: "Host(`traefik.domain.tld`)"
+      traefik.http.routers.traefik.service: "api@internal"
+      traefik.http.services.traefik.loadbalancer.server.port: "8080"
 
-    traefik-kobling:
-        image: ghcr.io/ldellisola/traefik-kobling:latest
-        container_name: traefik-kobling
-        depends_on:
-            - redis
-         volumes:
-             - ./config.yml:/config.yml
-         environment:
-             REDIS_URL: "redis:6379"
-             RUN_EVERY: 20
+  traefik-kobling:
+    image: alpine-variant
+    container_name: traefik-kobling
+    depends_on:
+      - redis
+    volumes:
+      - ./config.yml:/config.yml
+    environment:
+      REDIS_URL: "redis:6379"
+      RUN_EVERY: 20
 
-    redis:
-        image: redis:alpine
-        container_name: redis
-        restart: unless-stopped
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped

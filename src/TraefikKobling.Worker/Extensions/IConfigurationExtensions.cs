@@ -11,9 +11,9 @@ public static class IConfigurationExtensions
         {
             var server = new Server
             {
-                Name = child.GetRequiredValue<string>(nameof(Server.Name)),
-                ApiAddress = new Uri(child.GetRequiredValue<string>(nameof(Server.ApiAddress))),
-                DestinationAddress = new Uri(child.GetRequiredValue<string>(nameof(Server.DestinationAddress))),
+                Name = child.GetValue<string>(nameof(Server.Name)) ?? throw new ArgumentException($"{nameof(Server.Name)} is required"),
+                ApiAddress = new Uri(child.GetValue<string>(nameof(Server.ApiAddress)) ?? throw new ArgumentException($"{nameof(Server.ApiAddress)} is required")),
+                DestinationAddress = new Uri(child.GetValue<string>(nameof(Server.DestinationAddress))?? throw new ArgumentException($"{nameof(Server.DestinationAddress)} is required")),
                 ApiHost = child.GetValue<string>(nameof(Server.ApiHost)),
                 ForwardMiddlewares = child.GetValue<bool?>(nameof(Server.ForwardMiddlewares)),
                 ForwardServices = child.GetValue<bool?>(nameof(Server.ForwardServices))
@@ -35,13 +35,5 @@ public static class IConfigurationExtensions
 
         services.AddSingleton(options);
         return options;
-    }
-    
-    public static T GetRequiredValue<T>(this IConfiguration section, string key)
-    {
-        var value = section.GetValue<T>(key);
-        if (value is null)
-            throw new ArgumentException($"{key} is required");
-        return value;
     }
 }

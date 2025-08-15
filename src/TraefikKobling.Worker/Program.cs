@@ -1,7 +1,5 @@
-using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using TraefikKobling.Worker;
-using TraefikKobling.Worker.Configuration;
 using TraefikKobling.Worker.Extensions;
 
 

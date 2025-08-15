@@ -1,0 +1,36 @@
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+LICENSE*
+
+# Build artifacts
+**/bin/
+**/obj/
+**/out/
+
+# IDE files
+.vs/
+.vscode/
+**/.idea/
+*.user
+*.suo
+*.sln.docstates
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# CI/CD
+.github/
+
+# Runtime files
+*.log
+appsettings.Development.json
