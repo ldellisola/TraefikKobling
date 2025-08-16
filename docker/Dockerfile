@@ -19,10 +19,14 @@ RUN dotnet publish /src/TraefikKobling.Worker/TraefikKobling.Worker.csproj \
 
 # Build runtime image - minimal Alpine
 FROM alpine:3.21 AS runtime
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache ca-certificates tzdata && rm -rf /var/cache/apk/*
+
+RUN adduser -D -s /bin/sh appuser
+USER appuser
 
 ENV REDIS_URL=redis:6379
 ENV TRAEFIK_EXPORTER=redis
 WORKDIR /app
 COPY --from=build-env /src/out .
+RUN mkdir ./config
 ENTRYPOINT ["./TraefikKobling.Worker"]
