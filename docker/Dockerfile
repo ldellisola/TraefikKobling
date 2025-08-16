@@ -8,14 +8,14 @@ RUN apk add --no-cache clang build-base zlib-dev
 COPY ./src ./
 
 # Restore as distinct layers
-RUN dotnet restore /src/TraefikKobling.Worker/TraefikKobling.Worker.csproj -r linux-musl-arm64
+RUN dotnet restore /src/TraefikKobling.Worker/TraefikKobling.Worker.csproj -r linux-musl-x64
 
 # Build and publish a release
 RUN dotnet publish /src/TraefikKobling.Worker/TraefikKobling.Worker.csproj \
   -c Release \
   -o out \
   --no-restore \
-  -r linux-musl-arm64
+  -r linux-musl-x64
 
 # Build runtime image - minimal Alpine
 FROM alpine:3.21 AS runtime
