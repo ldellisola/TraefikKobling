@@ -18,9 +18,14 @@ For the main traefik instance, you have to configure it to use the redis provide
 
 ```yml
 providers:
+  # if you are using the Redis exporter
   redis:
     endpoints:
       - "localhost:6379" # change the address if the redis instance is not available in local host
+  # if you are using the file exporter
+  file:
+    directory: ./dynamic
+    watch: true
   # other providers
 ```
 
@@ -52,6 +57,7 @@ servers:
 
 And then finally, we can set up Traefik Kobling on your main instance:
 
+- For the redis exporter
 ```yml
 services:
   traefik-kobling:
@@ -59,15 +65,30 @@ services:
     volumes:
       - ./config.yml:/config.yml
     environment:
+      TRAEFIK_EXPORTER: "redis"
       REDIS_URL: "localhost:6379"
+```
+- for the file exporter:
+```yml
+services:
+  traefik-kobling:
+    image: ghcr.io/ldellisola/traefik-kobling
+    volumes:
+      - ./config.yml:/config.yml
+      - ./dynamic/kobling-dynamic-conf.yml:/dynamic-kobling.yml
+    environment:
+      TRAEFIK_EXPORTER: "file"
+      TRAEFIK_DYNAMIC_CONFIG_PATH: "/dynamic-kobling.yml"
 ```
 
 ## Configuration
 
 There are two places where you can configure this application. First there are some
 environment variables:
-- `REDIS_URL`: Specify the URL of the redis database. The default is `redis:6379`.
-- `CONFIG_PATH`: It let's the user change the location of the `config.yml` file. The default
+- `TRAEFIK_EXPORTER`: `redis` or `file`. It defines whether kobling will export the configuration as a file or using redis. It defaults to `redis`.
+- `REDIS_URL`: If you want to export to Redis, you have to specify the URL of the redis database. The default is `redis:6379`.
+- `TRAEFIK_DYNAMIC_CONFIG_PATH`:If you want to export to a file, you can specify the path where the file will be created inside the container. It defaults to `/dynamic-kobling.yml`
+- `CONFIG_PATH`: It lets the user change the location of the `config.yml` file. The default
 location is `/config.yml`.
 - `RUN_EVERY`: It specifies how many seconds to wait before checking the local instances for
 changes. The default value is 60 seconds.
@@ -123,9 +144,9 @@ So if you have a router with a custom service, for example:
 ```yml
 services:
   whoami:
-    ...
+    # ...
     labels:
-      ...
+      # ...
       traefik.http.routers.utgifter-auth.service: "authentik@file"
 ```
 It will look in the main instance for the `authentik@file` service.
@@ -162,7 +183,7 @@ In practice, it means that whatever middleware you registered to a router:
 ```yml
 services:
   whoami:
-    ...
+    # ...
     labels:
       traefik.http.routers.whoami.middlewares: auth@file
 ```
@@ -177,7 +198,7 @@ There are 2 ways around this:
 ```yml
 services:
   whoami:
-    ...
+    # ...
     labels:
       traefik.http.routers.whoami.rule: "Host(`whoami.lud.ar`)"
       # longer rule means less priority
@@ -414,7 +435,7 @@ Then, you can define your services like:
 ```yml
 services:
   whoami:
-    ...
+    # ...
     labels:
       traefik.enable: "true"
       traefik.http.routers.whoami.rule: "Host(`whoami.domain.tld`)"

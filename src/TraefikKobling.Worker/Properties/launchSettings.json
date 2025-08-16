@@ -6,8 +6,8 @@
             "environmentVariables": {
                 "DOTNET_ENVIRONMENT": "Development",
                 "CONFIG_PATH": "./appsettings.yml",
-                "REDIS_URL": "localhost:6379",
-                "RUN_EVERY": "5"
+                "RUN_EVERY": "5",
+                "TRAEFIK_DYNAMIC_CONFIG_PATH": "./dynamic_kobling.yml"
             }
         }
     }

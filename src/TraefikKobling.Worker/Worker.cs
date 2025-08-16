@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
-using StackExchange.Redis;
 using TraefikKobling.Worker.Configuration;
+using TraefikKobling.Worker.Exporters;
 using TraefikKobling.Worker.Extensions;
 using TraefikKobling.Worker.Traefik;
 using Server = TraefikKobling.Worker.Configuration.Server;
@@ -10,7 +10,7 @@ namespace TraefikKobling.Worker;
 public class Worker(
     ILogger<Worker> logger,
     IHttpClientFactory httpClientFactory,
-    IConnectionMultiplexer redis,
+    ITraefikExporter exporter,
     KoblingOptions options)
     : BackgroundService
 {
@@ -39,24 +39,11 @@ public class Worker(
                 }
             }
 
-            var entriesToRemove = _oldEntries.Keys.Except(entries.Keys);
-
-            var db = redis.GetDatabase();
-
-            foreach (var key in entriesToRemove)
-            {
-                await db.KeyDeleteAsync(key);
-            }
-
-            foreach (var (key, value) in entries)
-            {
-                await db.StringUpdateIfChanged(key, value);
-            }
+            await exporter.ExportTraefikEntries(_oldEntries, entries, stoppingToken);
 
             _oldEntries.Clear();
             _oldEntries.Merge(entries);
-
-
+            
             await Task.Delay(_runEvery * 1000, stoppingToken);
         }
     }

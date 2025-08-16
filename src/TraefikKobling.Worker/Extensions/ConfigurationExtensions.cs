@@ -2,7 +2,7 @@ using TraefikKobling.Worker.Configuration;
 
 namespace TraefikKobling.Worker.Extensions;
 
-public static class IConfigurationExtensions
+public static class ConfigurationExtensions
 {
     public static KoblingOptions AddKoblingOptions(this IServiceCollection services, IConfiguration configuration)
     {

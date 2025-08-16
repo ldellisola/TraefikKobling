@@ -22,6 +22,7 @@ FROM alpine:3.21 AS runtime
 RUN apk add --no-cache ca-certificates tzdata
 
 ENV REDIS_URL=redis:6379
+ENV TRAEFIK_EXPORTER=redis
 WORKDIR /app
 COPY --from=build-env /src/out .
 ENTRYPOINT ["./TraefikKobling.Worker"]
