@@ -7,15 +7,23 @@ RUN apk add --no-cache clang build-base zlib-dev
 # Copy everything
 COPY ./src ./
 
+# Set target architecture based on build platform
+ARG TARGETARCH
+RUN case ${TARGETARCH} in \
+  "amd64") echo "linux-musl-x64" > /tmp/rid ;; \
+  "arm64") echo "linux-musl-arm64" > /tmp/rid ;; \
+  *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
+  esac
+
 # Restore as distinct layers
-RUN dotnet restore /src/TraefikKobling.Worker/TraefikKobling.Worker.csproj -r linux-musl-x64
+RUN dotnet restore /src/TraefikKobling.Worker/TraefikKobling.Worker.csproj -r $(cat /tmp/rid)
 
 # Build and publish a release
 RUN dotnet publish /src/TraefikKobling.Worker/TraefikKobling.Worker.csproj \
   -c Release \
   -o out \
   --no-restore \
-  -r linux-musl-x64
+  -r $(cat /tmp/rid)
 
 # Build runtime image - minimal Alpine
 FROM alpine:3.21 AS runtime
