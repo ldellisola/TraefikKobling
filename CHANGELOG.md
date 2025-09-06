@@ -1,7 +1,7 @@
 # Changes
 
 ## v0.3.0
-**Released on**: ...
+**Released on**: 06/09/2025
 ### Changes
 - Reduced docker image size in half.
 - Added support for file-based configuration next to redis. 
