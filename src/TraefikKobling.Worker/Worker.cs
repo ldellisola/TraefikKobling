@@ -43,7 +43,7 @@ public class Worker(
 
             _oldEntries.Clear();
             _oldEntries.Merge(entries);
-            
+
             await Task.Delay(_runEvery * 1000, stoppingToken);
         }
     }
@@ -96,10 +96,10 @@ public class Worker(
             }
 
             if (registeredEntryPoints == 0) continue;
-            
+
             entries[$"traefik/tcp/routers/{name}/rule"] = router.Rule;
             entries[$"traefik/tcp/routers/{name}/service"] = server.Name;
-            
+
         }
 
         return entries;
@@ -156,6 +156,7 @@ public class Worker(
             if (registeredEntryPoints == 0) continue;
 
             entries[$"traefik/http/routers/{name}/rule"] = router.Rule;
+            entries[$"traefik/http/routers/{name}/priority"] = router.Priority.ToString();
             entries[$"traefik/http/routers/{name}/service"] = server.Name;
 
             if (server.ForwardServices ?? options.ForwardServices ?? false)
