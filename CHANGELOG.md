@@ -1,5 +1,10 @@
 # Changes
 
+## v0.4.0
+**Released on**: 13/09/2025
+### Changes
+- Add support for priority in HTTP routes
+
 ## v0.3.0
 **Released on**: 06/09/2025
 ### Changes
