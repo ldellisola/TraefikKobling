@@ -28,7 +28,7 @@ public static class ConfigurationExtensions
         var options = new KoblingOptions
         {
             Servers = servers.ToArray(),
-            RunEvery = configuration.GetValue<int>("RUN_EVERY"),
+            RunEvery = configuration.GetValue("RUN_EVERY",60),
             ForwardMiddlewares = configuration.GetValue<bool?>(nameof(KoblingOptions.ForwardMiddlewares)),
             ForwardServices = configuration.GetValue<bool?>(nameof(KoblingOptions.ForwardMiddlewares))
         };

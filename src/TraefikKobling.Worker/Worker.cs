@@ -15,9 +15,9 @@ public class Worker(
     : BackgroundService
 {
     private readonly Server[] _servers = options.Servers;
-    private readonly int _runEvery = options.RunEvery ?? 60;
+    private readonly int _runEvery = options.RunEvery;
 
-    private readonly IDictionary<string,string> _oldEntries = new Dictionary<string, string>();
+    private readonly Dictionary<string,string> _oldEntries = new();
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
